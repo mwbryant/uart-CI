@@ -61,7 +61,7 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  if(count < 114000 || count > 115000) { //should be about 11.4ms for one character at 9600 baud
+  if(count < 114000 || count > 115000) { //should be about 1.14ms for one character at 9600 baud
     std::cout << "ERROR: Invalid message send time : " << count << "0ns" << std::endl;
     return 1;  
   }
