@@ -31,7 +31,10 @@ jobs:
       run: sudo apt-get install verilator
       
     - name: Make the basic test
-      run: verilator -Wall --cc uarttx.v --exe --build basicUartTest.cpp -o basicTest
+      run: |
+        verilator -Wall --cc uarttx.v --exe basicUartTest.cpp -o basicTest
+        cd obj_dir
+        make -f Vuarttx.mk
       
     - name: Run the test
       run: ./obj_dir/basicTest
