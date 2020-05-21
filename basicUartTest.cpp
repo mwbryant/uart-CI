@@ -46,7 +46,8 @@ int main(int argc, char **argv) {
 
   //report result
   std::cout << "done, cycle count = " << count << std::endl;
-  if(count > 110000 && count < 120000) { //should be about 114us
+  //if(count > 110000 && count < 120000) { //should be about 114us
+  if(count > 100000 && count < 110000) { //edited for force failing test
     return 0;  //sucess
   }
   //failure
