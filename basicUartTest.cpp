@@ -2,6 +2,15 @@
 #include "obj_dir/Vuarttx.h"
 #include "verilated.h"
 #include <iostream>
+#include <bitset>
+
+void tick(Vuarttx *tb) {
+  tb->eval();
+  tb->clk = 1;
+  tb->eval();
+  tb->clk = 0; //leave the clock low
+  tb->eval();
+}
 
 int main(int argc, char **argv) {
 	// Initialize Verilators variables
@@ -9,48 +18,65 @@ int main(int argc, char **argv) {
 
 	Vuarttx *tb = new Vuarttx;
 
-  //horrid code but it gets the point across
   //Startup
-  tb->clk = 1;
-  tb->eval();
+  tick(tb);
 
   //Send an A
-  tb->clk = 0;
   tb->newDataReady = 1;
   tb->newData = 'A';
-  tb->eval();
-
-  tb->clk = 1;
-  tb->eval();
-
+  tick(tb);
+  
   //Don't send more and put garbage on the data in line
-  tb->clk = 0;
   tb->newDataReady = 0;
   tb->newData = '0';
-  tb->eval();
-
-  tb->clk = 1;
-  tb->eval();
+  tick(tb);
   
-  int count = 0;
+  int count = 0; //cycle counter
+  bool started = false; // start bit flag
+  int bitcount = 0; //tracks how many bits have been recieved
+  auto output = std::bitset<8>(0); //records the output message as it appears 
+
   while(tb->ready==0) { //loop until send complete
-    tb->clk = 0;
-    tb->eval();
-    tb->clk = 1;
-    tb->eval();
+    tick(tb);
     count++;
+    if(tb->uarttx__DOT__baudClk) {
+      tick(tb); //new output on next cycle
+      count++;
+      if(started) {
+        output[bitcount] = tb->tx;         
+        bitcount++;
+        if(bitcount==8) started = false; // byte recieved
+      } else if(!started && tb->tx==0) { //start message recording
+        started = true;
+      }
+    }
+  }
+
+  //report result
+  std::cout << "done, cycle count = " << count << std::endl;
+  std::cout << "sent message = " << output << std::endl;
+
+  if(output != 'A') { //TODO randomly gen character to send
+    std::cout << "ERROR: Wrong character recieved: " << static_cast<char>(output.to_ulong()) << std::endl;
+    return 1;
+  }
+
+  if(count < 114000 || count > 115000) { //should be about 11.4ms for one character at 9600 baud
+    std::cout << "ERROR: Invalid message send time : " << count << "0ns" << std::endl;
+    return 1;  
+  }
+
+  for(int i=0; i<1000; i++) {
+    tick(tb);
+    if(tb->tx != 1) { //stop bit should be held until new data
+      std::cout << "ERROR: Stop bit was not held" << std::endl;
+      return 1;
+    }
   }
 
   //cleanup
   delete tb;
 
-  //report result
-  std::cout << "done, cycle count = " << count << std::endl;
-  //if(count > 110000 && count < 120000) { //should be about 114us
-  if(count > 100000 && count < 110000) { //edited for force failing test
-    return 0;  //sucess
-  }
-  //failure
-  return 1;
+  return 0;
   
 }
