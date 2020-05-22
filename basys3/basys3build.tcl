@@ -4,9 +4,9 @@ read_verilog [ glob ../*.v ]
 
 read_xdc basys3constraints.xdc
 
-synth_design -top uarttx -directive runtimeoptimized
+synth_design -top uarttx ; #-directive runtimeoptimized
 
-#opt_design
+opt_design
 
 place_design
 
