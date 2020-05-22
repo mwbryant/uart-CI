@@ -1,0 +1,8 @@
+obj_dir/
+.Xil/
+
+*.swp
+*.html
+*.xml
+*.bit
+
