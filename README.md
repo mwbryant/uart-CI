@@ -1,4 +1,4 @@
-#Uart-CI
+# Uart-CI
 
 This project is a basic test of Github actions working with [verilator](https://www.veripool.org/wiki/verilator) to build a simple verilog uart transmitter module and automatically runs the tests defined in basicUartTest.cpp
 
